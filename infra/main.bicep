@@ -10,7 +10,7 @@ param environmentName string = 'rome'
 param location string = 'eastus'
 
 param appServicePlanName string = 'rome-ai-appserviceplan'
-param backendServiceName string = 'romae-ai-backend'
+param backendServiceName string = 'rome-ai-backend'
 param resourceGroupName string = 'rome-ai-webapp'
 
 param searchServiceName string = 'searchresourcewb'
@@ -52,7 +52,7 @@ param openAIStream bool = true
 // Used for the Azure AD application
 param authClientId string = '12936380-724a-4181-9126-0cec5f425ae3'
 @secure()
-param authClientSecret string = '2bd59984-5ba8-48f5-94fd-4eb5d2db229b'
+param authClientSecret string = 'vZ68Q~fTqEWmwpGH961Ca6bmrH_OFJ_d3T2e2bth'
 
 // Used for Cosmos DB
 param cosmosAccountName string = 'rome-ai-cosmos'
@@ -108,7 +108,7 @@ module backend 'core/host/appservice.bicep' = {
     tags: union(tags, { 'azd-service-name': 'backend' })
     appServicePlanId: appServicePlan.outputs.id
     runtimeName: 'python'
-    runtimeVersion: '3.10'
+    runtimeVersion: '3.11'
     scmDoBuildDuringDeployment: true
     managedIdentity: true
     authClientSecret: authClientSecret
