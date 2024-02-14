@@ -3,21 +3,21 @@ targetScope = 'subscription'
 @minLength(1)
 @maxLength(64)
 @description('Name of the the environment which is used to generate a short unique hash used in all resources.')
-param environmentName string
+param environmentName string = 'rome'
 
 @minLength(1)
 @description('Primary location for all resources')
-param location string
+param location string = 'eastus'
 
-param appServicePlanName string = ''
-param backendServiceName string = ''
-param resourceGroupName string = ''
+param appServicePlanName string = 'rome-ai-appserviceplan'
+param backendServiceName string = 'romae-ai-backend'
+param resourceGroupName string = 'rome-ai-webapp'
 
-param searchServiceName string = ''
-param searchServiceResourceGroupName string = ''
-param searchServiceResourceGroupLocation string = location
-param searchServiceSkuName string = ''
-param searchIndexName string = 'gptkbindex'
+param searchServiceName string = 'searchresourcewb'
+param searchServiceResourceGroupName string = 'willbuckner-rg'
+param searchServiceResourceGroupLocation string = 'westus2'
+param searchServiceSkuName string = 'standard'
+param searchIndexName string = 'rome-ai-index'
 param searchUseSemanticSearch bool = false
 param searchSemanticSearchConfig string = 'default'
 param searchTopK int = 5
@@ -27,12 +27,12 @@ param searchFilenameColumn string = 'filepath'
 param searchTitleColumn string = 'title'
 param searchUrlColumn string = 'url'
 
-param openAiResourceName string = ''
-param openAiResourceGroupName string = ''
-param openAiResourceGroupLocation string = location
-param openAiSkuName string = ''
-param openAIModel string = 'turbo16k'
-param openAIModelName string = 'gpt-35-turbo-16k'
+param openAiResourceName string = 'openaiwb'
+param openAiResourceGroupName string = 'willbuckner-rg'
+param openAiResourceGroupLocation string = 'East US'
+param openAiSkuName string = 's0'
+param openAIModel string = 'gtp35wb'
+param openAIModelName string = 'gpt-35-turbo'
 param openAITemperature int = 0
 param openAITopP int = 1
 param openAIMaxTokens int = 1000
@@ -40,25 +40,25 @@ param openAIStopSequence string = ''
 param openAISystemMessage string = 'You are an AI assistant that helps people find information.'
 param openAIApiVersion string = '2023-06-01-preview'
 param openAIStream bool = true
-param embeddingDeploymentName string = 'embedding'
-param embeddingModelName string = 'text-embedding-ada-002'
+// param embeddingDeploymentName string = 'embedding'
+// param embeddingModelName string = 'text-embedding-ada-002'
 
 // Used by prepdocs.py: Form recognizer
-param formRecognizerServiceName string = ''
-param formRecognizerResourceGroupName string = ''
-param formRecognizerResourceGroupLocation string = location
-param formRecognizerSkuName string = ''
+// param formRecognizerServiceName string = ''
+// param formRecognizerResourceGroupName string = ''
+// param formRecognizerResourceGroupLocation string = location
+// param formRecognizerSkuName string = ''
 
 // Used for the Azure AD application
-param authClientId string
+param authClientId string = '12936380-724a-4181-9126-0cec5f425ae3'
 @secure()
-param authClientSecret string
+param authClientSecret string = '2bd59984-5ba8-48f5-94fd-4eb5d2db229b'
 
 // Used for Cosmos DB
-param cosmosAccountName string = ''
+param cosmosAccountName string = 'rome-ai-cosmos'
 
 @description('Id of the user or app to assign application roles')
-param principalId string = ''
+param principalId string = 'ec86c737-c61e-4742-9dde-952ce3a9e8ee'
 
 var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
@@ -160,19 +160,19 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
         model: {
           format: 'OpenAI'
           name: openAIModelName
-          version: '0613'
+          version: '0301'
         }
         capacity: 30
       }
-      {
-        name: embeddingDeploymentName
-        model: {
-          format: 'OpenAI'
-          name: embeddingModelName
-          version: '2'
-        }
-        capacity: 30
-      }
+      // {
+      //   name: embeddingDeploymentName
+      //   model: {
+      //     format: 'OpenAI'
+      //     name: embeddingModelName
+      //     version: '2'
+      //   }
+      //   capacity: 30
+      // }
     ]
   }
 }
@@ -272,66 +272,66 @@ module searchRoleBackend 'core/security/role.bicep' = {
 }
 
 // For doc prep
-module docPrepResources 'docprep.bicep' = {
-  name: 'docprep-resources${resourceToken}'
-  params: {
-    location: location
-    resourceToken: resourceToken
-    tags: tags
-    principalId: principalId
-    resourceGroupName: resourceGroup.name
-    formRecognizerServiceName: formRecognizerServiceName
-    formRecognizerResourceGroupName: formRecognizerResourceGroupName
-    formRecognizerResourceGroupLocation: formRecognizerResourceGroupLocation
-    formRecognizerSkuName: !empty(formRecognizerSkuName) ? formRecognizerSkuName : 'S0'
-  }
-}
-output AZURE_LOCATION string = location
-output AZURE_TENANT_ID string = tenant().tenantId
-output AZURE_RESOURCE_GROUP string = resourceGroup.name
+// module docPrepResources 'docprep.bicep' = {
+//   name: 'docprep-resources${resourceToken}'
+//   params: {
+//     location: location
+//     resourceToken: resourceToken
+//     tags: tags
+//     principalId: principalId
+//     resourceGroupName: resourceGroup.name
+//     formRecognizerServiceName: formRecognizerServiceName
+//     formRecognizerResourceGroupName: formRecognizerResourceGroupName
+//     formRecognizerResourceGroupLocation: formRecognizerResourceGroupLocation
+//     formRecognizerSkuName: !empty(formRecognizerSkuName) ? formRecognizerSkuName : 'S0'
+//   }
+// }
+// output AZURE_LOCATION string = location
+// output AZURE_TENANT_ID string = tenant().tenantId
+// output AZURE_RESOURCE_GROUP string = resourceGroup.name
 
-output BACKEND_URI string = backend.outputs.uri
+// output BACKEND_URI string = backend.outputs.uri
 
-// search
-output AZURE_SEARCH_INDEX string = searchIndexName
-output AZURE_SEARCH_SERVICE string = searchService.outputs.name
-output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
-output AZURE_SEARCH_SKU_NAME string = searchService.outputs.skuName
-output AZURE_SEARCH_KEY string = searchService.outputs.adminKey
-output AZURE_SEARCH_USE_SEMANTIC_SEARCH bool = searchUseSemanticSearch
-output AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG string = searchSemanticSearchConfig
-output AZURE_SEARCH_TOP_K int = searchTopK
-output AZURE_SEARCH_ENABLE_IN_DOMAIN bool = searchEnableInDomain
-output AZURE_SEARCH_CONTENT_COLUMNS string = searchContentColumns
-output AZURE_SEARCH_FILENAME_COLUMN string = searchFilenameColumn
-output AZURE_SEARCH_TITLE_COLUMN string = searchTitleColumn
-output AZURE_SEARCH_URL_COLUMN string = searchUrlColumn
+// // search
+// output AZURE_SEARCH_INDEX string = searchIndexName
+// output AZURE_SEARCH_SERVICE string = searchService.outputs.name
+// output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
+// output AZURE_SEARCH_SKU_NAME string = searchService.outputs.skuName
+// output AZURE_SEARCH_KEY string = searchService.outputs.adminKey
+// output AZURE_SEARCH_USE_SEMANTIC_SEARCH bool = searchUseSemanticSearch
+// output AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG string = searchSemanticSearchConfig
+// output AZURE_SEARCH_TOP_K int = searchTopK
+// output AZURE_SEARCH_ENABLE_IN_DOMAIN bool = searchEnableInDomain
+// output AZURE_SEARCH_CONTENT_COLUMNS string = searchContentColumns
+// output AZURE_SEARCH_FILENAME_COLUMN string = searchFilenameColumn
+// output AZURE_SEARCH_TITLE_COLUMN string = searchTitleColumn
+// output AZURE_SEARCH_URL_COLUMN string = searchUrlColumn
 
-// openai
-output AZURE_OPENAI_RESOURCE string = openAi.outputs.name
-output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
-output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
-output AZURE_OPENAI_MODEL string = openAIModel
-output AZURE_OPENAI_MODEL_NAME string = openAIModelName
-output AZURE_OPENAI_SKU_NAME string = openAi.outputs.skuName
-output AZURE_OPENAI_KEY string = openAi.outputs.key
-output AZURE_OPENAI_EMBEDDING_NAME string = '${embeddingDeploymentName}'
-output AZURE_OPENAI_TEMPERATURE int = openAITemperature
-output AZURE_OPENAI_TOP_P int = openAITopP
-output AZURE_OPENAI_MAX_TOKENS int = openAIMaxTokens
-output AZURE_OPENAI_STOP_SEQUENCE string = openAIStopSequence
-output AZURE_OPENAI_SYSTEM_MESSAGE string = openAISystemMessage
-output AZURE_OPENAI_PREVIEW_API_VERSION string = openAIApiVersion
-output AZURE_OPENAI_STREAM bool = openAIStream
+// // openai
+// output AZURE_OPENAI_RESOURCE string = openAi.outputs.name
+// output AZURE_OPENAI_RESOURCE_GROUP string = openAiResourceGroup.name
+// output AZURE_OPENAI_ENDPOINT string = openAi.outputs.endpoint
+// output AZURE_OPENAI_MODEL string = openAIModel
+// output AZURE_OPENAI_MODEL_NAME string = openAIModelName
+// output AZURE_OPENAI_SKU_NAME string = openAi.outputs.skuName
+// output AZURE_OPENAI_KEY string = openAi.outputs.key
+// output AZURE_OPENAI_EMBEDDING_NAME string = '${embeddingDeploymentName}'
+// output AZURE_OPENAI_TEMPERATURE int = openAITemperature
+// output AZURE_OPENAI_TOP_P int = openAITopP
+// output AZURE_OPENAI_MAX_TOKENS int = openAIMaxTokens
+// output AZURE_OPENAI_STOP_SEQUENCE string = openAIStopSequence
+// output AZURE_OPENAI_SYSTEM_MESSAGE string = openAISystemMessage
+// output AZURE_OPENAI_PREVIEW_API_VERSION string = openAIApiVersion
+// output AZURE_OPENAI_STREAM bool = openAIStream
 
-// Used by prepdocs.py:
-output AZURE_FORMRECOGNIZER_SERVICE string = docPrepResources.outputs.AZURE_FORMRECOGNIZER_SERVICE
-output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = docPrepResources.outputs.AZURE_FORMRECOGNIZER_RESOURCE_GROUP
-output AZURE_FORMRECOGNIZER_SKU_NAME string = docPrepResources.outputs.AZURE_FORMRECOGNIZER_SKU_NAME
+// // Used by prepdocs.py:
+// output AZURE_FORMRECOGNIZER_SERVICE string = docPrepResources.outputs.AZURE_FORMRECOGNIZER_SERVICE
+// output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = docPrepResources.outputs.AZURE_FORMRECOGNIZER_RESOURCE_GROUP
+// output AZURE_FORMRECOGNIZER_SKU_NAME string = docPrepResources.outputs.AZURE_FORMRECOGNIZER_SKU_NAME
 
-// cosmos
-output AZURE_COSMOSDB_ACCOUNT string = cosmos.outputs.accountName
-output AZURE_COSMOSDB_DATABASE string = cosmos.outputs.databaseName
-output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = cosmos.outputs.containerName
+// // cosmos
+// output AZURE_COSMOSDB_ACCOUNT string = cosmos.outputs.accountName
+// output AZURE_COSMOSDB_DATABASE string = cosmos.outputs.databaseName
+// output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = cosmos.outputs.containerName
 
-output AUTH_ISSUER_URI string = authIssuerUri
+// output AUTH_ISSUER_URI string = authIssuerUri
